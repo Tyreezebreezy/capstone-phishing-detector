@@ -260,6 +260,8 @@ Source: [`testing-workflow.mmd`](diagrams/testing-workflow.mmd)
 
 Mermaid sources are intentionally kept separate so they remain editable and can be reviewed in pull requests. All ten sources were rendered with Mermaid CLI 11.12.0 to SVG and PNG in `docs/diagrams/rendered/`. The rendered PNGs were visually inspected for clipped text, overlapping labels, incorrect arrows, and inconsistent source/export pairs; three layouts were revised and re-rendered to improve presentation legibility.
 
+During Windows recovery on 2026-11-22, the component diagram was corrected to show 10 integration tests in the embedded diagram, `.mmd`, and SVG. Its PNG was regenerated from the corrected SVG in Chromium; the other nine exports were preserved. All ten embedded diagrams also loaded in the private GitHub preview.
+
 Suggested rendering commands:
 
 ```bash

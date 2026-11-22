@@ -1,16 +1,16 @@
-# System Architecture and Diagram Package
+# System Architecture
 
 All diagrams describe the audited implementation. Editable sources are in [`diagrams/`](diagrams/); rendered SVG and PNG exports are in [`diagrams/rendered/`](diagrams/rendered/).
 
 The shared visual language uses teal for application processes, navy text, neutral data movement, and amber notes. No diagram introduces a database, cloud service, reputation API, mailbox connection, attachment engine, or machine-learning component.
 
-## Presentation overview
+## Overview
 
 This simplified view is intended for an audience unfamiliar with the code.
 
 ```mermaid
-flowchart TD
-    Input["1. Student enters a URL<br/>or email"] --> Inspect["2. Program checks<br/>explainable warning signs"]
+flowchart LR
+    Input["1. User enters a URL<br/>or email"] --> Inspect["2. Program checks<br/>explainable warning signs"]
     Inspect --> Score["3. Rule weights create<br/>a heuristic score"]
     Score --> Explain["4. Program shows<br/>risk label + reasons"]
     Safety["Everything stays local.<br/>Links and attachments are not opened."]
@@ -24,21 +24,24 @@ Source: [`simplified-overview.mmd`](diagrams/simplified-overview.mmd)
 The direct URL path and email path converge at the URL analyzer and scoring/classification logic. Results return to the same local interface.
 
 ```mermaid
-flowchart LR
+flowchart TD
     User([User]) --> UI["Local interface<br/>Web UI or CLI"]
     UI -->|One URL| URLInput[URL input]
     UI -->|Pasted text or .eml bytes| EmailInput[Email input]
+
     URLInput --> URLAnalyzer[URL analyzer]
     EmailInput --> EmailParser[Email parser]
     EmailParser --> TextRules[Email text rules]
     EmailParser --> URLExtract[URL extraction]
     URLExtract --> URLAnalyzer
+
     URLAnalyzer --> URLRules[URL structural rules]
     URLRules --> Score[Heuristic scoring]
     TextRules --> Score
     Score --> Classify[Risk classification]
     Classify --> Results["Results<br/>label, score, findings, extracted URLs"]
     Results --> User
+
     note["Local processing only<br/>No link visits, DNS, APIs, database,<br/>or attachment execution"]
     note -. constraint .-> URLAnalyzer
     note -. constraint .-> EmailParser
@@ -57,10 +60,12 @@ flowchart TD
     C -->|Yes| Invalid["INVALID INPUT<br/>score 0 + parse finding"]
     C -->|No| D[Add https scheme if omitted]
     D --> E[Parse scheme, hostname, port, path, user info]
-    E --> F{"HTTP or HTTPS,<br/>valid hostname and port?"}
+    E --> F{"HTTP or HTTPS,<br/>hostname present and port valid?"}
     F -->|No| Invalid
     F -->|Yes| G[Normalize hostname with IDNA]
-    G --> H["Run URL rules<br/>HTTP +1<br/>user info before @ +2<br/>numeric IP host +2<br/>punycode +1<br/>login/verification path term +1"]
+    G --> Valid{"IDNA conversion and<br/>normalized hostname valid?"}
+    Valid -->|No| Invalid
+    Valid -->|Yes| H["Run URL rules<br/>HTTP +1<br/>user info before @ +2<br/>numeric IP host +2<br/>punycode +1<br/>login/verification path term +1"]
     H --> I[Collect every triggered finding]
     I --> J[Sum heuristic score]
     J --> K{"Score"}
@@ -77,7 +82,7 @@ Source: [`url-analysis.mmd`](diagrams/url-analysis.mmd)
 
 ## C. Email detection flowchart
 
-The sender header is displayed but not authenticated or scored. The parser skips MIME parts marked as attachments and analyzes only supported text parts.
+The sender header is displayed but not authenticated or scored. The parser skips individual MIME parts marked as attachments and analyzes supported text parts. Nested-container limits are described in [limitations](LIMITATIONS.md).
 
 ```mermaid
 flowchart TD
@@ -131,7 +136,7 @@ flowchart TD
     UserIn -->|Pasted email text| P2[2. Prepare email content]
     UserIn -->|.eml bytes| P3[3. Parse .eml message]
     P3 -->|Subject, From, plain text, HTML text| P2
-    P2 -->|Visible text| P4[4. Apply email wording rules]
+    P2 -->|Subject and body text| P4[4. Apply email wording rules]
     P2 -->|"Unique HTTP(S) URLs"| P5[5. Analyze embedded URLs]
     P1 --> P6[6. Score and classify URL]
     P5 --> P6
@@ -140,6 +145,7 @@ flowchart TD
     P6 -->|Direct URL result| Output[8. Format result]
     P7 -->|Email result| Output
     Output -->|Label, score, findings, URL details| UserOut([User result])
+
     Memory["Ephemeral process memory only<br/>No database or external transmission"]
     Memory -. boundary .-> P1
     Memory -. boundary .-> P2
@@ -149,7 +155,7 @@ Source: [`data-flow-level-1.mmd`](diagrams/data-flow-level-1.mmd)
 
 ## E. Sequence diagram
 
-The “local interface” participant represents either the web UI/server pair or the CLI. Both call the same detection engine.
+The “local interface” participant represents either the web UI/server pair or the CLI. Both call the same detection engine. Rules and scoring are conceptual steps within that engine, not separate services. Pasted input is plain text; HTML-link checks apply to parsed HTML email parts.
 
 ```mermaid
 sequenceDiagram
@@ -160,6 +166,7 @@ sequenceDiagram
     participant URL as URL analyzer
     participant Rules as Detection rules
     participant Score as Scoring/classification
+
     alt Direct URL scan
         User->>UI: Submit one URL
         UI->>URL: analyze_url(text)
@@ -169,7 +176,7 @@ sequenceDiagram
     else Pasted email scan
         User->>UI: Submit message text
         UI->>Parser: analyze_email_content(text)
-        Parser->>Rules: Evaluate wording and HTML links
+        Parser->>Rules: Evaluate wording
         Parser->>URL: Analyze extracted URLs (max 20)
         URL->>Rules: Evaluate each URL
         Rules->>Score: Email findings + highest URL score
@@ -183,7 +190,7 @@ sequenceDiagram
         Rules->>Score: Findings and weights
         Score-->>UI: Email result and URL details
     end
-    UI-->>User: Render escaped, non-clickable explanations
+    UI-->>User: Show plain-text results (web UI uses text nodes)
 ```
 
 Source: [`sequence.mmd`](diagrams/sequence.mmd)
@@ -221,7 +228,6 @@ flowchart TD
     Repo --> Integration["test_ui_server.py<br/>10 integration tests"]
     Integration --> Server
     Repo --> Samples["samples/<br/>synthetic .eml fixtures"]
-    Unit --> Samples
     Integration --> Samples
     Repo --> Docs["README.md, CONTRIBUTING.md, docs/"]
     Docs --> Diagrams["docs/diagrams/<br/>Mermaid sources + rendered exports"]
@@ -256,25 +262,15 @@ flowchart TD
 
 Source: [`testing-workflow.mmd`](diagrams/testing-workflow.mmd)
 
-## Export and verification
+## Maintaining the diagrams
 
-Mermaid sources are intentionally kept separate so they remain editable and can be reviewed in pull requests. All ten sources were rendered with Mermaid CLI 11.12.0 to SVG and PNG in `docs/diagrams/rendered/`. The rendered PNGs were visually inspected for clipped text, overlapping labels, incorrect arrows, and inconsistent source/export pairs; three layouts were revised and re-rendered to improve presentation legibility.
+Keep each editable `.mmd` source, its embedded diagram above, and both rendered exports synchronized. The source theme uses teal processes, navy text, and neutral edges. SVG supports scalable viewing; PNG is useful in slides and document editors.
 
-During Windows recovery on 2026-11-22, the component diagram was corrected to show 10 integration tests in the embedded diagram, `.mmd`, and SVG. Its PNG was regenerated from the corrected SVG in Chromium; the other nine exports were preserved. All ten embedded diagrams also loaded in the private GitHub preview.
-
-Suggested rendering commands:
+With Node.js/npm installed, render a source using the pinned documentation tool:
 
 ```bash
-npx -y @mermaid-js/mermaid-cli -i docs/diagrams/system-architecture.mmd -o docs/diagrams/rendered/system-architecture.svg -b transparent
-npx -y @mermaid-js/mermaid-cli -i docs/diagrams/system-architecture.mmd -o docs/diagrams/rendered/system-architecture.png -b white -w 1800
+npx -y @mermaid-js/mermaid-cli@11.12.0 -i docs/diagrams/components.mmd -o docs/diagrams/rendered/components.svg -b transparent
+npx -y @mermaid-js/mermaid-cli@11.12.0 -i docs/diagrams/components.mmd -o docs/diagrams/rendered/components.png -b white -w 1800
 ```
 
-Repeat for each `.mmd` source. Mermaid is a documentation/build tool here; the phishing detector does not require it at runtime.
-
-## Suggested capstone presentation order
-
-1. **Simplified overview** — establish the four-step story and local safety boundary.
-2. **High-level system architecture** — show how URL and email paths share the URL analyzer and scoring logic.
-3. **Scoring and classification** — explain the labels, exact thresholds, and why the score is not a probability.
-
-Use the URL or email flowchart only if the professor asks for implementation detail. Use the testing workflow to answer questions about validation versus real-world accuracy.
+Repeat for each changed source, then inspect labels, arrows, clipping, and consistency with the implementation. These commands can download documentation tooling and its browser dependency; Mermaid and Node.js are not application runtime requirements. Record rendering and review results in the pull request.

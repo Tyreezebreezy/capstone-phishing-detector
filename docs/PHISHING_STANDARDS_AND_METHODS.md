@@ -51,8 +51,8 @@ Note: Many older tutorials cite RFC 7489 as the DMARC specification. RFC 9989 is
 - There is no measured precision, recall, false-positive rate, or false-negative rate on an independently labeled dataset.
 - No live email-security gateway, attachment scanning, or machine-learning classifier is implemented.
 
-## Ethical and academic framing
+## Describing the methodology
 
-For Capstone 1, describe the design as **“an offline, explainable, rule-based phishing screening prototype informed by NIST phishing guidance, mapped to MITRE ATT&CK T1566, using standard-library email and URL parsing and OWASP-inspired untrusted-input handling.”**
+The design can be described as **“an offline, explainable, rule-based phishing screening prototype informed by NIST phishing guidance, mapped to MITRE ATT&CK T1566, using standard-library email and URL parsing and OWASP-inspired untrusted-input handling.”**
 
-Do **not** describe it as “NIST-certified,” “MITRE-certified,” “RFC-compliant,” or as a tool that “uses NIST scoring.” All mappings and claims should be reviewed by the team before Week 13 submission.
+Do **not** describe it as “NIST-certified,” “MITRE-certified,” “RFC-compliant,” or as a tool that “uses NIST scoring.” All mappings and claims should be reviewed by the team before publication or presentation.

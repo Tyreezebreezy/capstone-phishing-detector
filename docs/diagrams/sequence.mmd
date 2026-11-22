@@ -17,7 +17,7 @@ sequenceDiagram
     else Pasted email scan
         User->>UI: Submit message text
         UI->>Parser: analyze_email_content(text)
-        Parser->>Rules: Evaluate wording and HTML links
+        Parser->>Rules: Evaluate wording
         Parser->>URL: Analyze extracted URLs (max 20)
         URL->>Rules: Evaluate each URL
         Rules->>Score: Email findings + highest URL score
@@ -31,4 +31,4 @@ sequenceDiagram
         Rules->>Score: Findings and weights
         Score-->>UI: Email result and URL details
     end
-    UI-->>User: Render escaped, non-clickable explanations
+    UI-->>User: Show plain-text results (web UI uses text nodes)

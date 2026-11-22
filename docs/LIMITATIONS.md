@@ -29,9 +29,17 @@ Attackers can avoid the fixed English phrases, use images or QR codes, hide cont
 - Comprehensive MIME, encoding, obfuscation, or non-English-language analysis.
 - A database, accounts, authentication, audit storage, or commercial deployment.
 
+## Parsing and input boundaries
+
+- Only the first 20 unique extracted HTTP(S) URLs are analyzed. The result reports the total extracted count and whether inspection was truncated.
+- HTML text collection does not evaluate browser visibility. Script/style text can influence wording checks; the program does not execute it.
+- MIME traversal skips individual parts marked as attachments, but is not a comprehensive attachment-container filter. Nested text parts can still be encountered. No attachment content is executed or scanned for malware.
+- The web interface limits URLs to 4,096 characters, pasted email text to 2,000,000 UTF-8 bytes, and `.eml` uploads to 2,000,000 bytes. JSON endpoints also cap the complete encoded request body, so heavily escaped text can reach that cap before the text limit.
+- The `.eml` parser enforces the same byte limit. CLI text and URL inputs do not use the web interface's separate size limits.
+
 ## Privacy and retention
 
-The application is designed for local processing. The web server binds to `127.0.0.1`; browser requests remain on the same computer. Analysis data exists in process memory while a request is handled and is returned to the local interface. The application code does not persist submissions to a database or file and does not transmit them to an external service. Standard request logging prints method, path, status, and client address but not submitted content.
+The application is designed for local processing. The provided launchers and server CLI bind to `127.0.0.1`; browser requests remain on the same computer. Analysis data exists in process memory while a request is handled and is returned to the local interface. The application code does not persist submissions to a database or file and does not transmit them to an external service. Standard request logging prints method, path, status, and client address but not submitted content.
 
 Users should still avoid pasting unnecessary confidential information during demonstrations. Local processing reduces exposure; it does not remove the responsibility to use authorized, minimal, synthetic data.
 

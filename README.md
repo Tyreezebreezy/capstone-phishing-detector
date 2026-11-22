@@ -1,162 +1,107 @@
 # Capstone 1 Phishing Detector
 
-An offline, rule-based proof of concept that screens one URL, pasted email text, or a raw `.eml` message and returns an explainable heuristic classification. It is designed for an FIU cybersecurity capstone demonstration, not as a production security control.
+A local, rule-based phishing screening prototype for URLs and email content. It explains which warning signs were found, assigns a heuristic score, and presents the result through a web interface or command line.
 
-## Problem and objective
+Built as a student cybersecurity project, the detector uses Python's standard library and bundled HTML, CSS, and JavaScript. It runs offline after setup, without API keys, package installation, or a shared server.
 
-Phishing messages often combine pressure, requests for sensitive information, and misleading link structures. This project demonstrates how transparent rules can identify some of those indicators without visiting links, opening attachments, or sending message content to an external service.
+> A score is not a probability. **No indicators found does not mean safe.** This proof of concept is not a production security control.
 
-The minimum working model aims to:
+![URL scanner interface](screenshots/url-scanner.jpg)
 
-- accept URL and email input through a local web interface or command line;
-- apply documented, deterministic rules;
-- show the score contribution as human-readable findings; and
-- communicate limitations without claiming measured detection accuracy.
+## What it does
 
-## Architecture
+- **URL screening:** checks HTTP use, user information before `@`, numeric IP hosts, punycode, and selected login or verification path terms.
+- **Email screening:** checks fixed English urgency and sensitive-information phrases, extracts HTTP(S) links, and analyzes the first 20 unique links.
+- **`.eml` support:** reads subject, sender, and supported text/HTML MIME parts; compares URL-like anchor text with its destination hostname. Pasted messages are treated as plain text.
+- **Explainable results:** shows the classification, score, triggered rules, and individual embedded-URL findings.
+- **Local handling:** does not visit submitted links, resolve hostnames, execute attachments, or send analysis inputs to an external service.
 
-```mermaid
-flowchart LR
-    User([User]) --> UI["Local web UI or CLI"]
-    UI -->|URL| URL[URL analyzer]
-    UI -->|Pasted text or .eml| Email[Email parser and text rules]
-    Email --> Extract["Extract HTTP(S) URLs"]
-    Extract --> URL
-    URL --> Score[Heuristic scoring]
-    Email --> Score
-    Score --> Classify[Risk classification]
-    Classify --> Result["Label, score, findings, URL details"]
-    Result --> UI
-```
+## Install and run
 
-Detailed and presentation-ready diagrams are indexed in [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md).
+Requirements: **Python 3.10 or newer** and a modern browser. Git is optional if downloading a ZIP.
 
-## Implemented features
-
-- URL validation and local parsing; no browsing, redirects, DNS, or reputation lookup.
-- URL findings for HTTP, user-info obfuscation, numeric IP hosts, punycode, and login/verification path terms.
-- Email findings for urgency/account-threat wording, explicit requests for sensitive information, and HTML link-host mismatches.
-- URL extraction from plain text and HTML links; the first 20 unique URLs are inspected.
-- `.eml` parsing of Subject, From, `text/plain`, and `text/html`; parts marked as attachments are skipped.
-- Exact classifications: `NO INDICATORS FOUND`, `REVIEW RECOMMENDED`, `HIGH RISK`, and URL `INVALID INPUT`.
-- Responsive local web UI with reset, validation, escaped text rendering, and optional `.eml` upload.
-- Command-line interface for URL, pasted-text, and `.eml` analysis.
-
-**Transferred to a new PC?** Start with [`PC_RECOVERY_GUIDE.md`](PC_RECOVERY_GUIDE.md) and run `TEST_WINDOWS.cmd` before publishing. For the current Codex recovery, verification and private GitHub steps, read [`CODEX_HANDOFF_PC_TO_PRIVATE_GITHUB.md`](CODEX_HANDOFF_PC_TO_PRIVATE_GITHUB.md).
-
-## Requirements
-
-- Python 3.10 or later.
-- A current web browser for the graphical interface.
-- No package installation, API key, account, database, or internet connection.
-
-The application uses only the Python standard library and bundled HTML/CSS/JavaScript.
-
-
-## Run it on any teammate's computer
-
-See [TEAMMATE_SETUP.md](TEAMMATE_SETUP.md) for Windows, macOS, and Linux instructions. On Windows, double-click `START_WINDOWS.cmd`. On macOS or Linux, run `sh START_MAC_LINUX.sh`. These launchers start the same localhost Python backend and attempt to open the browser. Python 3.10+ must be installed separately. The UI is **not** a standalone `file://` HTML page; it needs the included backend.
-
-## Run the graphical interface
-
-From the project folder:
+This repository is private. Accept the owner's invitation and authenticate to GitHub before cloning, or use **Code → Download ZIP** and extract it. See [teammate setup](TEAMMATE_SETUP.md) for authentication and troubleshooting.
 
 ```bash
-python ui_server.py
+git clone https://github.com/Tyreezebreezy/capstone-phishing-detector.git
+cd capstone-phishing-detector
 ```
 
-Open <http://127.0.0.1:8765>. On Windows, try `py ui_server.py` if `python` is not on `PATH`.
+| Platform | Start the web interface | Run tests |
+|---|---|---|
+| Windows | Double-click `START_WINDOWS.cmd`, or run `py -3 launch.py` | Double-click `TEST_WINDOWS.cmd`, or run `py -3 -m unittest discover -v` |
+| macOS / Linux | `sh START_MAC_LINUX.sh`, or `python3 launch.py` | `sh TEST_MAC_LINUX.sh`, or `python3 -m unittest discover -v` |
 
-The server accepts only `127.0.0.1` as its bind host and checks local Host/Origin headers. Press `Ctrl+C` in the terminal to stop it.
+The launcher opens <http://127.0.0.1:8765>. Keep its terminal open; press **Ctrl+C** there to stop. Each teammate runs a separate copy on their own computer. Opening `web/index.html` directly does not start the backend.
 
-## Run the command-line interface
+If port 8765 is occupied, use `py -3 launch.py --port 8766` on Windows or `python3 launch.py --port 8766` on macOS/Linux. `--no-browser` starts the server without opening a browser tab. No `pip install` step is needed.
 
-```bash
-python phishing_detector.py
+## Try a scan
+
+Choose **URL Scanner** to enter a URL, or **Email Scanner** to paste text or upload an `.eml` file. If both text and a file are present, the file takes precedence. **Reset** clears both forms and the results.
+
+These synthetic examples give reproducible demonstrations:
+
+| Input | Expected result |
+|---|---|
+| `https://example.org` | Score 0 — `NO INDICATORS FOUND` |
+| `http://example.org` | Score 1 — `REVIEW RECOMMENDED` |
+| `http://192.0.2.10/login` | Score 4 — `HIGH RISK` |
+| `samples/normal_email.eml` | Score 0 — `NO INDICATORS FOUND` |
+| `samples/suspicious_email.eml` | Score 10 — `HIGH RISK` |
+| `javascript:alert(1)` | `INVALID INPUT`, score 0 |
+
+The command-line interface uses the same engine. Run these from the project folder (`python3` in place of `py -3` on macOS/Linux):
+
+```powershell
+py -3 phishing_detector.py --url "http://192.0.2.10/login"
+py -3 phishing_detector.py --text "Urgent: enter your password at http://192.0.2.10/login"
+py -3 phishing_detector.py --email samples/suspicious_email.eml
 ```
 
-Direct examples:
+Run `py -3 phishing_detector.py` without arguments for the interactive menu.
 
-```bash
-python phishing_detector.py --url "https://example.org"
-python phishing_detector.py --url "http://192.0.2.10/login"
-python phishing_detector.py --text "Urgent: enter your password at http://192.0.2.10/login"
-python phishing_detector.py --email samples/suspicious_email.eml
-```
+## How it works
 
-Example suspicious result:
+`phishing_detector.py` parses the input and applies fixed rules. URL findings add their weights. Email scoring combines wording and HTML-link findings with **only the highest score** among the inspected embedded URLs, rather than summing every URL score.
 
-```text
-RESULT: HIGH RISK | heuristic score: 4
- - HTTP used instead of HTTPS (weak indicator on its own)
- - Destination uses a numeric IP address rather than a domain
- - URL path contains login or verification terms (weak indicator)
-```
+| Score | Classification |
+|---|---|
+| 0 | `NO INDICATORS FOUND` |
+| 1–2 | `REVIEW RECOMMENDED` |
+| 3 or more | `HIGH RISK` |
 
-The score is a sum of rule weights, not a percentage or probability.
+Invalid URLs return a separate `INVALID INPUT` result. The [rule reference](docs/HOW_IT_WORKS.md) documents every weight, parsing step, and boundary.
 
-## Detection summary
+The web interface calls three local endpoints in `ui_server.py`, which delegate to the same engine used by the CLI. The provided launchers bind to `127.0.0.1`. Results are rendered as text, and the server allowlists static files and checks request size, Host, and supplied Origin headers.
 
-| Signal | Weight |
-|---|---:|
-| HTTP rather than HTTPS | +1 |
-| User information before `@` in a URL | +2 |
-| Numeric IP address as URL host | +2 |
-| Punycode in hostname | +1 |
-| Login/verification term in URL path | +1 |
-| Urgency or account-threat wording | +1 |
-| Explicit sensitive-information request | +2 |
-| Displayed URL host differs from HTML link destination | +3 |
-| Most suspicious embedded URL | + that URL's score |
+## Tests
 
-Classification thresholds: 0 = `NO INDICATORS FOUND`; 1–2 = `REVIEW RECOMMENDED`; 3 or more = `HIGH RISK`. A malformed URL returns `INVALID INPUT` with score 0 and an explanation.
+The suite contains **30 tests: 20 detector tests and 10 HTTP/UI integration tests**. Run the platform command above from the repository root. Integration tests start a temporary loopback server; they need permission to open local sockets.
 
-See [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md) for the complete technical explanation.
+[GitHub Actions](https://github.com/Tyreezebreezy/capstone-phishing-detector/actions/workflows/tests.yml) runs the suite on Ubuntu with Python 3.10, 3.11, 3.12, and 3.13 for pushes and pull requests. See [testing and validation](docs/TESTING.md) for coverage, manual UI checks, and platform limits. Passing synthetic tests does not establish real-world detection accuracy.
 
-For source-backed framework and standards mappings, and a clear separation between implemented heuristics and unimplemented sender authentication, see [`docs/PHISHING_STANDARDS_AND_METHODS.md`](docs/PHISHING_STANDARDS_AND_METHODS.md).
+## Limitations
 
-## Testing
+The rules can produce false positives and miss phishing. No labeled real-world dataset has been evaluated. Sender headers are displayed, not authenticated. There is no SPF, DKIM, DMARC, reputation lookup, DNS resolution, redirect expansion, website inspection, machine learning, or attachment analysis.
 
-```bash
-python -m unittest -v
-```
+The web interface limits URLs to 4,096 characters and email text/files to 2,000,000 bytes, with a separate JSON request-body cap. The `.eml` parser also enforces that file-size limit; CLI text input has no separate size limit. HTML parsing is structural, not browser rendering, and MIME coverage is limited. See [limitations and responsible use](docs/LIMITATIONS.md).
 
-The repository contains 20 detector unit tests and 10 local UI/backend integration tests. Passing tests verify expected coded behavior; they do not establish real-world phishing-detection accuracy. See [`docs/TESTING.md`](docs/TESTING.md).
+## Project guide
 
-## Limits and safety boundaries
+| File or directory | Purpose |
+|---|---|
+| `phishing_detector.py` | Detection rules, parsers, scoring, and CLI |
+| `ui_server.py`, `launch.py` | Local HTTP API, static assets, and browser launcher |
+| `web/` | Browser interface |
+| `test_detector.py`, `test_ui_server.py` | Unit and integration tests |
+| `samples/` | Two synthetic email fixtures |
+| `docs/`, `docs/diagrams/` | Technical documentation and editable/rendered diagrams |
+| `screenshots/` | Example interface views |
 
-- Email input is limited to 2 MB; the web URL field is limited to 4,096 characters.
-- No mailbox access, sender authentication, attachment analysis, live reputation checks, redirects, machine learning, or external APIs.
-- Rules are primarily English-language phrases and can produce false positives and false negatives.
-- No persistent database is used. The local server processes submissions in memory and does not include their contents in its request log.
-- Defanged or escaped display does not make a suspicious message safe.
+- [Teammate setup](TEAMMATE_SETUP.md) and [contributing](CONTRIBUTING.md)
+- [System architecture and diagrams](docs/SYSTEM_ARCHITECTURE.md)
+- [Standards and methodology](docs/PHISHING_STANDARDS_AND_METHODS.md)
+- [Development provenance and acknowledgments](docs/DEVELOPMENT_PROVENANCE.md)
 
-Read [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) before presenting results.
-
-## Planned, not implemented
-
-- Evaluate a labeled, ethically sourced dataset and report precision/recall with documented methodology.
-- Expand language and encoding coverage.
-- Research sender-authentication metadata and attachment handling under a separate, reviewed scope.
-
-These are future-study ideas, not current capabilities.
-
-## Team collaboration
-
-Follow [`CONTRIBUTING.md`](CONTRIBUTING.md). Use a short-lived branch, run all tests, review documentation claims against the code, and open a pull request. The included GitHub Actions workflow runs the same standard-library test suite.
-
-The team repository is [Tyreezebreezy/capstone-phishing-detector](https://github.com/Tyreezebreezy/capstone-phishing-detector) and is private. Classmates must accept an invitation and authenticate before cloning. See [TEAMMATE_SETUP.md](TEAMMATE_SETUP.md).
-
-## AI assistance and attribution
-
-ChatGPT/Codex assisted with the web-interface implementation, test additions, documentation structure, Mermaid diagrams, and validation commands. Human reviewers remain responsible for verifying code, claims, citations, and academic-submission requirements. Details and third-party licensing are in [`docs/PROVENANCE_AND_ETHICS.md`](docs/PROVENANCE_AND_ETHICS.md).
-
-No license has been selected for the group's original project code. Do not assume permission to redistribute beyond the team's academic use until the team chooses and records a license.
-
-## References
-
-- [NIST phishing guidance](https://www.nist.gov/itl/smallbusinesscyber/guidance-topic/phishing)
-- [Python email parser documentation](https://docs.python.org/3/library/email.parser.html)
-- [Python `urllib.parse` documentation](https://docs.python.org/3/library/urllib.parse.html)
-- [ACM Code of Ethics](https://www.acm.org/code-of-ethics)
-- [Mermaid](https://mermaid.js.org/)
+No project license has been selected. Third-party component licenses are recorded in the provenance document; the team must decide how to license its own work before public redistribution.

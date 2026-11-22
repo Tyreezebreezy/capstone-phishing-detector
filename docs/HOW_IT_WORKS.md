@@ -9,7 +9,7 @@ The detector accepts one URL, pasted email text, or a raw `.eml` file and examin
 The core implementation is `phishing_detector.py`.
 
 1. `analyze_url()` strips outer whitespace, validates URL syntax, normalizes the hostname through IDNA, applies URL rules, sums their weights, and returns a dictionary containing the original input, score, classification, and findings.
-2. `analyze_email_content()` combines the subject, plain text, and visible text extracted from HTML. It applies message-wording rules, checks HTML anchors for host mismatches, extracts unique HTTP(S) links, and invokes `analyze_url()` for up to 20 links.
+2. `analyze_email_content()` combines the subject, plain text, and text collected from HTML. It applies message-wording rules, checks HTML anchors for host mismatches, extracts unique HTTP(S) links, and invokes `analyze_url()` for up to 20 links.
 3. Email scoring adds the fixed email-rule weights and the score of the most suspicious inspected URL. It does not add every URL score together.
 4. `analyze_email_file()` enforces the 2 MB limit, parses bytes with `BytesParser(policy=policy.default)`, and collects supported text parts. Parts whose content disposition is `attachment` are skipped.
 5. `classify()` maps score 0 to `NO INDICATORS FOUND`, scores 1–2 to `REVIEW RECOMMENDED`, and scores 3 or higher to `HIGH RISK`.
@@ -20,7 +20,7 @@ The core implementation is `phishing_detector.py`.
 - `POST /api/analyze-email` with JSON pasted text; and
 - `POST /api/analyze-email-file` with raw `.eml` bytes.
 
-The server allowlists static assets, applies a restrictive Content Security Policy, rejects oversized requests, and binds only to `127.0.0.1`. The browser code constructs result elements with `textContent`; it does not interpolate submitted values as HTML.
+The server allowlists static assets, applies a restrictive Content Security Policy, rejects oversized requests, and uses `127.0.0.1` through the provided launchers and server CLI. It rejects foreign Host headers and, when supplied, foreign Origin headers; an absent Origin header is accepted for non-browser clients. The browser code constructs result elements with `textContent`; it does not interpolate submitted values as HTML.
 
 ## Email analysis
 
@@ -34,7 +34,7 @@ The email parser reads the `Subject` and `From` headers for display. It walks MI
 
 ### HTML links
 
-The `HTMLLinkParser` collects HTTP(S) `href` values and visible text. When visible anchor text itself looks like an HTTP(S) URL, the parser compares its hostname with the `href` hostname. Different hostnames trigger a +3 finding. It does not follow redirects or determine whether either host is trustworthy.
+The `HTMLLinkParser` collects HTTP(S) `href` values and HTML text data. It does not render the message or evaluate CSS visibility; text inside script/style elements can participate in wording checks. When visible anchor text itself looks like an HTTP(S) URL, the parser compares its hostname with the `href` hostname. Different hostnames trigger a +3 finding. It does not follow redirects or determine whether either host is trustworthy.
 
 ### Email rules
 

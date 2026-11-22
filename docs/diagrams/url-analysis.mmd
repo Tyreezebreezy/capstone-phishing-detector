@@ -5,10 +5,12 @@ flowchart TD
     C -->|Yes| Invalid["INVALID INPUT<br/>score 0 + parse finding"]
     C -->|No| D[Add https scheme if omitted]
     D --> E[Parse scheme, hostname, port, path, user info]
-    E --> F{"HTTP or HTTPS,<br/>valid hostname and port?"}
+    E --> F{"HTTP or HTTPS,<br/>hostname present and port valid?"}
     F -->|No| Invalid
     F -->|Yes| G[Normalize hostname with IDNA]
-    G --> H["Run URL rules<br/>HTTP +1<br/>user info before @ +2<br/>numeric IP host +2<br/>punycode +1<br/>login/verification path term +1"]
+    G --> Valid{"IDNA conversion and<br/>normalized hostname valid?"}
+    Valid -->|No| Invalid
+    Valid -->|Yes| H["Run URL rules<br/>HTTP +1<br/>user info before @ +2<br/>numeric IP host +2<br/>punycode +1<br/>login/verification path term +1"]
     H --> I[Collect every triggered finding]
     I --> J[Sum heuristic score]
     J --> K{"Score"}

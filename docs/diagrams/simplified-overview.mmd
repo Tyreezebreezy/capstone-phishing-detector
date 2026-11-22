@@ -1,6 +1,6 @@
 %%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
 flowchart LR
-    Input["1. Student enters a URL<br/>or email"] --> Inspect["2. Program checks<br/>explainable warning signs"]
+    Input["1. User enters a URL<br/>or email"] --> Inspect["2. Program checks<br/>explainable warning signs"]
     Inspect --> Score["3. Rule weights create<br/>a heuristic score"]
     Score --> Explain["4. Program shows<br/>risk label + reasons"]
     Safety["Everything stays local.<br/>Links and attachments are not opened."]

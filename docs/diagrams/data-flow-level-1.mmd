@@ -1,0 +1,19 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart TD
+    UserIn([User input]) -->|URL text| P1[1. Validate and parse URL]
+    UserIn -->|Pasted email text| P2[2. Prepare email content]
+    UserIn -->|.eml bytes| P3[3. Parse .eml message]
+    P3 -->|Subject, From, plain text, HTML text| P2
+    P2 -->|Visible text| P4[4. Apply email wording rules]
+    P2 -->|"Unique HTTP(S) URLs"| P5[5. Analyze embedded URLs]
+    P1 --> P6[6. Score and classify URL]
+    P5 --> P6
+    P4 --> P7[7. Combine email score and findings]
+    P6 -->|Individual URL results; highest URL score| P7
+    P6 -->|Direct URL result| Output[8. Format result]
+    P7 -->|Email result| Output
+    Output -->|Label, score, findings, URL details| UserOut([User result])
+
+    Memory["Ephemeral process memory only<br/>No database or external transmission"]
+    Memory -. boundary .-> P1
+    Memory -. boundary .-> P2

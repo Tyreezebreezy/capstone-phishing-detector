@@ -1,0 +1,15 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart TD
+    Source[Source or documentation change] --> Local[Run local unit and integration tests]
+    Local --> Decision{All tests pass?}
+    Decision -->|No| Review[Review failure and implementation]
+    Review --> Fix[Targeted correction + regression test]
+    Fix --> Local
+    Decision -->|Yes| Human[Human review of behavior, docs, and diagrams]
+    Human --> Commit[Git commit / pull request]
+    Commit --> CI[GitHub Actions runs test suite]
+    CI --> CIDecision{CI passes?}
+    CIDecision -->|No| Review
+    CIDecision -->|Yes| Ready[Ready for team review or merge]
+    Accuracy["Important: passing tests demonstrates expected coded behavior,<br/>not real-world phishing-detection accuracy"]
+    Ready -. does not establish .-> Accuracy

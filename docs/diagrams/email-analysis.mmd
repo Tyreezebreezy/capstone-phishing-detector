@@ -1,0 +1,26 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart TD
+    A([Receive email input]) --> B{"Input mode"}
+    B -->|Pasted text| C[Use text as plain body]
+    B -->|.eml bytes| D{"Larger than 2 MB?"}
+    D -->|Yes| E[Reject with validation error]
+    D -->|No| F[Parse message with Python email parser]
+    F --> G[Read Subject and From for display]
+    F --> H[Collect text/plain and text/html parts]
+    H --> I[Skip parts marked as attachments]
+    C --> J[Build analysis text]
+    G --> J
+    I --> J
+    J --> K["Run email rules<br/>urgency/account threat +1<br/>sensitive-information request +2<br/>visible-link host mismatch +3"]
+    J --> L["Extract unique HTTP(S) URLs"]
+    L --> M[Analyze first 20 URLs with URL analyzer]
+    M --> N[Add highest embedded URL score]
+    K --> O[Combine score and findings]
+    N --> O
+    O --> P{"Combined score"}
+    P -->|0| Q[NO INDICATORS FOUND]
+    P -->|1 to 2| R[REVIEW RECOMMENDED]
+    P -->|3 or more| S[HIGH RISK]
+    Q --> T["Return label, score, findings,<br/>subject, sender, URL results and total"]
+    R --> T
+    S --> T

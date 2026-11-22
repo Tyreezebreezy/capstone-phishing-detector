@@ -1,0 +1,34 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+sequenceDiagram
+    autonumber
+    actor User
+    participant UI as Local interface
+    participant Parser as Email parser
+    participant URL as URL analyzer
+    participant Rules as Detection rules
+    participant Score as Scoring/classification
+
+    alt Direct URL scan
+        User->>UI: Submit one URL
+        UI->>URL: analyze_url(text)
+        URL->>Rules: Evaluate URL structure
+        Rules->>Score: URL findings and weights
+        Score-->>UI: Label, score, findings
+    else Pasted email scan
+        User->>UI: Submit message text
+        UI->>Parser: analyze_email_content(text)
+        Parser->>Rules: Evaluate wording and HTML links
+        Parser->>URL: Analyze extracted URLs (max 20)
+        URL->>Rules: Evaluate each URL
+        Rules->>Score: Email findings + highest URL score
+        Score-->>UI: Email result and URL details
+    else .eml scan
+        User->>UI: Submit .eml bytes
+        UI->>Parser: analyze_email_file(bytes)
+        Parser->>Parser: Parse headers and body, skip attachments
+        Parser->>Rules: Evaluate wording and HTML links
+        Parser->>URL: Analyze extracted URLs (max 20)
+        Rules->>Score: Findings and weights
+        Score-->>UI: Email result and URL details
+    end
+    UI-->>User: Render escaped, non-clickable explanations

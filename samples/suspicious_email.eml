@@ -1,0 +1,10 @@
+From: Account Support <security@not-the-real-company.example>
+To: student@example.edu
+Subject: Urgent account verification required
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+
+<html><body>
+<p>Urgent: Your account will be locked. Verify your password immediately.</p>
+<p><a href="http://192.0.2.10/login">https://accounts.example.org/login</a></p>
+</body></html>

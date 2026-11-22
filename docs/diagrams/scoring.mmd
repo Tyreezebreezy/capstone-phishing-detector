@@ -1,0 +1,13 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart TD
+    A([Analysis request]) --> B{"Valid URL input<br/>or valid email request?"}
+    B -->|No| Invalid["INVALID INPUT or validation error<br/>URL invalid result uses score 0"]
+    B -->|Yes| C[Sum implemented rule weights]
+    C --> D{"Heuristic score"}
+    D -->|0| Safe[NO INDICATORS FOUND]
+    D -->|1 or 2| Review[REVIEW RECOMMENDED]
+    D -->|3 or more| High[HIGH RISK]
+    Safe --> Warning["Score is not a probability.<br/>No indicators does not mean safe."]
+    Review --> Warning
+    High --> Warning
+    Invalid --> Warning

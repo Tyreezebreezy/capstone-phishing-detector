@@ -1,0 +1,22 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart TD
+    User([User]) --> UI["Local interface<br/>Web UI or CLI"]
+    UI -->|One URL| URLInput[URL input]
+    UI -->|Pasted text or .eml bytes| EmailInput[Email input]
+
+    URLInput --> URLAnalyzer[URL analyzer]
+    EmailInput --> EmailParser[Email parser]
+    EmailParser --> TextRules[Email text rules]
+    EmailParser --> URLExtract[URL extraction]
+    URLExtract --> URLAnalyzer
+
+    URLAnalyzer --> URLRules[URL structural rules]
+    URLRules --> Score[Heuristic scoring]
+    TextRules --> Score
+    Score --> Classify[Risk classification]
+    Classify --> Results["Results<br/>label, score, findings, extracted URLs"]
+    Results --> User
+
+    note["Local processing only<br/>No link visits, DNS, APIs, database,<br/>or attachment execution"]
+    note -. constraint .-> URLAnalyzer
+    note -. constraint .-> EmailParser

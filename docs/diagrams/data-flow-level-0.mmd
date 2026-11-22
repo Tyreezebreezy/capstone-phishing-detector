@@ -1,0 +1,6 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart LR
+    User([User]) -->|URL, pasted message, or .eml file| System[Local phishing detector]
+    System -->|Classification, heuristic score, findings, extracted URL results| User
+    LocalNote["Processing boundary: the user's computer<br/>Input is not sent to an external service or retained in a database"]
+    LocalNote -. describes .-> System

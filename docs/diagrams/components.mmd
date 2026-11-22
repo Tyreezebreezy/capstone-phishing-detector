@@ -1,0 +1,20 @@
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#e8f5f2","primaryTextColor":"#10233f","primaryBorderColor":"#087f75","lineColor":"#52657a","secondaryColor":"#eef3f7","tertiaryColor":"#fff7df","fontFamily":"Arial"}}}%%
+flowchart TD
+    Repo[capstone-phishing-detector]
+    Repo --> Engine["phishing_detector.py<br/>rules, parsing, scoring, CLI"]
+    Repo --> Server["ui_server.py<br/>localhost static/API server"]
+    Server --> Web["web/<br/>HTML, CSS, JavaScript UI"]
+    Server --> Engine
+    Repo --> Unit["test_detector.py<br/>20 engine tests"]
+    Unit --> Engine
+    Repo --> Integration["test_ui_server.py<br/>10 integration tests"]
+    Integration --> Server
+    Repo --> Samples["samples/<br/>synthetic .eml fixtures"]
+    Unit --> Samples
+    Integration --> Samples
+    Repo --> Docs["README.md, CONTRIBUTING.md, docs/"]
+    Docs --> Diagrams["docs/diagrams/<br/>Mermaid sources + rendered exports"]
+    Repo --> CI[".github/workflows/tests.yml<br/>automated unittest run"]
+    CI --> Unit
+    CI --> Integration
+    Repo --> Screens["screenshots/<br/>verified UI views"]

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local, explainable screening for URLs and email content.">
+  <title>Phishing Detector</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="page-header">
+      <div>
+        <h1>Phishing Detector</h1>
+        <p>Local, explainable screening for URLs and email content.</p>
+      </div>
+      <span class="local-note">Runs on this computer</span>
+    </header>
+
+    <section class="scanner" aria-labelledby="scanner-heading">
+      <h2 id="scanner-heading" class="visually-hidden">Choose a scanner</h2>
+      <div class="tabs" role="tablist" aria-label="Scanner mode">
+        <button id="url-tab" class="tab is-active" type="button" role="tab" aria-selected="true" aria-controls="url-panel">URL Scanner</button>
+        <button id="email-tab" class="tab" type="button" role="tab" aria-selected="false" aria-controls="email-panel">Email Scanner</button>
+      </div>
+
+      <div id="url-panel" class="panel" role="tabpanel" aria-labelledby="url-tab">
+        <form id="url-form" novalidate>
+          <label for="url-input">URL to analyze</label>
+          <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="4096" placeholder="https://example.org">
+          <p class="field-help">Analyzed as text only. The address is never opened or resolved.</p>
+          <div id="url-error" class="error" role="alert"></div>
+          <div class="actions">
+            <button class="primary" type="submit">Analyze URL</button>
+            <button class="secondary reset" type="button">Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="email-panel" class="panel" role="tabpanel" aria-labelledby="email-tab" hidden>
+        <form id="email-form" novalidate>
+          <label for="email-input">Email message</label>
+          <textarea id="email-input" name="email" rows="9" placeholder="Paste the message text here"></textarea>
+          <p class="field-help">Paste message text, or choose an .eml file below. Attachments are ignored.</p>
+
+          <div class="file-field">
+            <label for="email-file">Optional .eml file</label>
+            <input id="email-file" name="email-file" type="file" accept=".eml,message/rfc822">
+            <p id="file-status" class="file-status">No file selected</p>
+          </div>
+          <div id="email-error" class="error" role="alert"></div>
+          <div class="actions">
+            <button class="primary" type="submit">Analyze Email</button>
+            <button class="secondary reset" type="button">Reset</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <p id="working-status" class="working-status" role="status" aria-live="polite"></p>
+    <section id="results" class="results" aria-labelledby="results-title" aria-live="polite" hidden></section>
+
+    <footer>
+      <p>This heuristic score is not a probability. No indicators does not mean safe.</p>
+      <p>Proof of concept only — not a production security control.</p>
+    </footer>
+  </main>
+</body>
+</html>
